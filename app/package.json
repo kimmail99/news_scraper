@@ -1,0 +1,9 @@
+{
+  "name": "mbc",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "googleapis": "^169.0.0",
+    "puppeteer-core": "^23.0.0"
+  }
+}
