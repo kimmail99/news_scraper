@@ -11,23 +11,52 @@ if (!KEY_FILE) {
   throw new Error("❌ GOOGLE_SERVICE_ACCOUNT_KEY_FILE not set");
 }
 
-export async function appendToSheet(rows) {
+/* ===============================
+   공통 Sheets 클라이언트 생성
+   =============================== */
+async function getSheetsClient() {
   const auth = new google.auth.GoogleAuth({
     credentials: JSON.parse(fs.readFileSync(KEY_FILE, "utf8")),
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
 
-  const sheets = google.sheets({
+  return google.sheets({
     version: "v4",
     auth,
   });
+}
+
+/* ===============================
+   Sheet 전체 삭제 함수
+   =============================== */
+export async function clearSheet() {
+  const sheets = await getSheetsClient();
+
+  await sheets.spreadsheets.values.clear({
+    spreadsheetId: SHEET_ID,
+    range: "Sheet1!A:D", // 필요시 A:Z
+  });
+
+  console.log("🧹 Google Sheet 데이터 전체 삭제 완료");
+}
+
+/* ===============================
+   append 함수 (변경 없음)
+   =============================== */
+export async function appendToSheet(rows) {
+  const sheets = await getSheetsClient();
 
   const values = rows.map(r => [
     r.media || "",
-    r.title,
-    r.url,
-    r.upload_date,
+    r.title || "",
+    r.url || "",
+    r.upload_date || "",
   ]);
+
+  if (values.length === 0) {
+    console.log("⚠️ 추가할 데이터가 없습니다");
+    return;
+  }
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: SHEET_ID,

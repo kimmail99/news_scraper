@@ -2,7 +2,7 @@ import puppeteer from "puppeteer-core";
 import { scrapeJTBC } from "./jtbc.js";
 import { scrapeMBC } from "./mbc.js";
 import { scrapeHani } from "./hani.js";
-import { appendToSheet } from "../utils/googleSheet.js";
+import { clearSheet, appendToSheet } from "../utils/googleSheet.js";
 
 (async () => {
   console.log("🚀 전체 뉴스 스크래핑 시작");
@@ -50,6 +50,7 @@ import { appendToSheet } from "../utils/googleSheet.js";
   console.log(`✅ 총 ${results.length}개 기사`);
 
   // 구글 시트 업로드
+  await clearSheet();
   await appendToSheet(results);
   console.log("✅ 전체 작업 완료");
 })();
