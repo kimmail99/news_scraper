@@ -11,9 +11,6 @@ if (!KEY_FILE) {
   throw new Error("❌ GOOGLE_SERVICE_ACCOUNT_KEY_FILE not set");
 }
 
-/* ===============================
-   공통 Sheets 클라이언트 생성
-   =============================== */
 async function getSheetsClient() {
   const auth = new google.auth.GoogleAuth({
     credentials: JSON.parse(fs.readFileSync(KEY_FILE, "utf8")),
@@ -27,23 +24,44 @@ async function getSheetsClient() {
 }
 
 /* ===============================
-   Sheet 전체 삭제 함수
+   헤더 보장
+   =============================== */
+async function ensureHeader() {
+  const sheets = await getSheetsClient();
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: SHEET_ID,
+    range: "Sheet1!A1",
+    valueInputOption: "USER_ENTERED",
+    requestBody: {
+      values: [["media", "title", "url", "upload_date"]],
+    },
+  });
+}
+
+/* ===============================
+   2행부터 데이터 삭제
    =============================== */
 export async function clearSheet() {
   const sheets = await getSheetsClient();
 
   await sheets.spreadsheets.values.clear({
     spreadsheetId: SHEET_ID,
-    range: "Sheet1!A:D", // 필요시 A:Z
+    range: "Sheet1!A2:D",
   });
 
-  console.log("🧹 Google Sheet 데이터 전체 삭제 완료");
+  console.log("🧹 Google Sheet 데이터 삭제 완료");
 }
 
 /* ===============================
-   append 함수 (변경 없음)
+   데이터 쓰기 (2행부터)
    =============================== */
 export async function appendToSheet(rows) {
+  if (!rows || rows.length === 0) {
+    console.log("⚠️ 추가할 데이터가 없습니다");
+    return;
+  }
+
   const sheets = await getSheetsClient();
 
   const values = rows.map(r => [
@@ -53,14 +71,13 @@ export async function appendToSheet(rows) {
     r.upload_date || "",
   ]);
 
-  if (values.length === 0) {
-    console.log("⚠️ 추가할 데이터가 없습니다");
-    return;
-  }
+  // 헤더 보장
+  await ensureHeader();
 
-  await sheets.spreadsheets.values.append({
+  // 데이터 입력 (2행부터)
+  await sheets.spreadsheets.values.update({
     spreadsheetId: SHEET_ID,
-    range: "Sheet1!A:D",
+    range: "Sheet1!A2",
     valueInputOption: "USER_ENTERED",
     requestBody: {
       values,

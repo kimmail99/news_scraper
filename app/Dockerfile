@@ -35,4 +35,4 @@ COPY . .
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # 🔥 핵심
-CMD ["node", "scrapers/index.js"]
+CMD ["node"]

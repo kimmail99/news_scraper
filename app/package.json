@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
+    "express": "^5.2.1",
     "googleapis": "^169.0.0",
     "puppeteer-core": "^23.0.0"
   }
